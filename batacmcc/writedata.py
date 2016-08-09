@@ -9,39 +9,40 @@ class WriteData(object):
 
 
     def writedb(self, callnumber, tag, tagnum):
+        print callnumber
         try:
+
             self.check_callnumber_available(callnumber)
-            #self.insert_data(callnumber,tag,tagnum)
+            self.insert_data(callnumber,tag,tagnum)
             self.conn.commit()
+
         except Exception as e:
+            print "rollback " + callnumber
             self.conn.rollback()
-            raise e
+            #raise e 不再向上抛出异常
 
 
     def check_callnumber_available(self, callnumber):
         cursor = self.conn.cursor()
         try:
-            sql = "select callnumber from spidertable where callnumber=%s" % callnumber
+            sql = "select callnumber from spidertable where callnumber='%s'" % callnumber
             cursor.execute(sql)
-            print "check_callnumber_available " + sql
+            #print "check_callnumber_available " + sql
             rs = cursor.fetchall()
             if len(rs) != 0:
                 raise Exception("号码%s存在" % callnumber)
-                print "!!!!!!!!"
         finally:
-            print "@@@@@@@"
             cursor.close()
 
     def insert_data(self, callnumber, tag, tagnum):
         cursor = self.conn.cursor()
         try:
-            sql = "insert into spidertable(callnumber,tag,tagnum) values(%s,'%s',%s)" %(callnumber,tag,tagnum)
+            sql = "insert into spidertable(callnumber,tag,tagnum) values('%s','%s','%s')" %(callnumber,tag,tagnum)
             cursor.execute(sql)
-            print "insert_data :" + sql
+            #print "insert_data :" + sql
         finally:
-
-            print "#####"
             cursor.close()
+
 
 
 if __name__ == "__main__":
@@ -51,9 +52,9 @@ if __name__ == "__main__":
     wr_data = WriteData(conn)
 
     try:
-        f = open("baidu-20160809.txt","r")
+        f = open("data.txt","r")
         for line in f.readlines():
-            line_list = line.split("|")
+            line_list = line.split("\t")
             callnumber = line_list[0]
             tag = line_list[1]
             tagnum = line_list[2]
