@@ -11,9 +11,13 @@ class WriteData(object):
     def writedb(self, callnumber, tag, tagnum):
         print callnumber
         try:
-
-            self.check_callnumber_available(callnumber)
-            self.insert_data(callnumber,tag,tagnum)
+            check = self.check_callnumber_available(callnumber)
+            if check != 1:
+                self.insert_data(callnumber,tag,tagnum)
+                print "insert"
+            else:
+                self.update_data(callnumber,tag,tagnum)
+                print "update"
             self.conn.commit()
 
         except Exception as e:
@@ -24,25 +28,30 @@ class WriteData(object):
 
     def check_callnumber_available(self, callnumber):
         cursor = self.conn.cursor()
-        try:
-            sql = "select callnumber from spidertable where callnumber='%s'" % callnumber
-            cursor.execute(sql)
-            #print "check_callnumber_available " + sql
-            rs = cursor.fetchall()
-            if len(rs) != 0:
-                raise Exception("号码%s存在" % callnumber)
-        finally:
-            cursor.close()
+
+        sql = "select callnumber from spidertable where callnumber='%s'" % callnumber
+        cursor.execute(sql)
+        #print "check_callnumber_available " + sql
+        rs = cursor.fetchall()
+        print len(rs)
+        return len(rs)
+        cursor.close()
 
     def insert_data(self, callnumber, tag, tagnum):
         cursor = self.conn.cursor()
         try:
-            sql = "insert into spidertable(callnumber,tag,tagnum) values('%s','%s','%s')" %(callnumber,tag,tagnum)
+            sql = "insert into spidertable(callnumber,baidutag,baidutagnum) values('%s','%s','%s')" %(callnumber,tag,tagnum)
             cursor.execute(sql)
             #print "insert_data :" + sql
         finally:
             cursor.close()
-
+    def update_data(self,callnumber,tag,tagnum):
+        cursor = self.conn.cursor()
+        try:
+            sql = "update spidertable set baidutag='%s',baidutagnum='%s' where callnumber='%s' "%(tag,tagnum,callnumber)
+            cursor.execute(sql)
+        finally:
+            cursor.close()
 
 
 if __name__ == "__main__":
